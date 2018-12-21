@@ -1,7 +1,8 @@
 import string
+from collections import defaultdict
 
-# input_file = 'day7_input.txt'
-input_file = 'day7_test_input.txt'
+input_file = 'day7_input.txt'
+# input_file = 'day7_test_input.txt'
 
 
 def find_first_with_no_pre_req(step_lookup):
@@ -24,8 +25,9 @@ def remove_pre_req(step_lookup, pre_req):
 
 
 def main():
-    step_lookup = {letter: {'pre': set()} for letter in string.ascii_uppercase}
+    # step_lookup = {letter: {'pre': set()} for letter in string.ascii_uppercase}
     # step_lookup = {letter: {'pre': set()} for letter in 'ABCDEF'}
+    step_lookup = defaultdict(dict)
 
     with open(input_file, 'r') as fd:
         step_list = fd.read().splitlines()
@@ -34,19 +36,29 @@ def main():
         step_tokens = step.split()
         step_pre = step_tokens[1]
         step_letter = step_tokens[7]
-        step_lookup[step_letter.upper()]['pre'].add(step_pre)
+
+        if step_pre not in step_lookup:
+            step_lookup[step_pre.upper()]['pre'] = set()
+
+        try:
+            step_lookup[step_letter.upper()]['pre'].add(step_pre)
+        except KeyError:
+            step_lookup[step_letter.upper()]['pre'] = set()
+            step_lookup[step_letter.upper()]['pre'].add(step_pre)
+
+    print(step_lookup)
 
     step_list = []
-    # worker_list = [{'step': None, 'time_remaining': None} for _ in range(5)]
-    worker_list = [{'step': None, 'time_remaining': None} for _ in range(2)]
+    worker_list = [{'step': None, 'time_remaining': None} for _ in range(5)]
+    # worker_list = [{'step': None, 'time_remaining': None} for _ in range(2)]
     # print(worker_list)
 
     # generate time lookup dict
-    # base_time = 60
-    base_time = 0
+    base_time = 60
+    # base_time = 0
     time_lookup = {letter: base_time for letter in string.ascii_uppercase}
     for letter in time_lookup:
-        time_lookup[letter] += string.ascii_uppercase.index(letter)+1
+        time_lookup[letter] += string.ascii_uppercase.index(letter) + 1
 
     second_counter = 0
     current_workers = 0
