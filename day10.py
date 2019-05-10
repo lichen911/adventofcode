@@ -78,23 +78,28 @@ def advance_position(point_list):
         point.position = (new_x, new_y)
 
 
+def reverse_position(point_list):
+    for point in point_list:
+        new_x = point.position[0] - point.velocity[0]
+        new_y = point.position[1] - point.velocity[1]
+        point.position = (new_x, new_y)
+
 def main():
     point_list = load_point_list()
     # print_coord_list(point_list)
 
-    # for second in range(5):
-    #     print('second: {}'.format(second))
-    #     print(get_plot_size(point_list))
-    #     plot_points(point_list)
-    #     advance_position(point_list)
-
-    for second in range(15000):
-        # print(get_plot_size(point_list))
-        if get_plot_size(point_list)[0] == 180:
-            plot_points(point_list)
-            print('second: {}'.format(second))
-            break
+    second = 0
+    min_x_size = get_plot_size(point_list)[0]
+    while True:
         advance_position(point_list)
+        second += 1
+        if get_plot_size(point_list)[0] > min_x_size:
+            reverse_position(point_list)
+            plot_points(point_list)
+            print('second: {}'.format(second-1))
+            break
+        else:
+            min_x_size = get_plot_size(point_list)[0]
 
 
 if __name__ == "__main__":
