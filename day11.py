@@ -66,7 +66,7 @@ def main():
     max_region_size = 0
     for i in range(1, 301):
         current_max_region_coord = fuel_levels.find_greatest_region(i)
-        current_max_region_value = fuel_levels.compute_region(*current_max_region_coord, i)
+        current_max_region_value = fuel_levels.compute_region(*current_max_region_coord, size=i)
         if current_max_region_value > max_region_value:
             max_region_value = current_max_region_value
             max_region_coord = current_max_region_coord
