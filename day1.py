@@ -21,9 +21,7 @@ def get_fuel_req(input_mass):
             return fuel_total
         else:
             fuel_req = int(current_mass / 3) - 2
-            if fuel_req <= 0:
-                fuel_req = 0
-            return _fuel_req(fuel_req, fuel_total + fuel_req)
+            return _fuel_req(fuel_req, fuel_total + max(0, fuel_req))
 
     return _fuel_req(input_mass, 0)
 
