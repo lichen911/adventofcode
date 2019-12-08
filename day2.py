@@ -1,5 +1,3 @@
-import sys
-
 def get_intcode(input_file):
     intcode = []
     with open(input_file, 'r') as file:
