@@ -16,11 +16,6 @@ def go_downhill(hillside, slope):
     for y in range(slope_down, len(hillside), slope_down):
         x_pos = x_pos + slope_right
         x_idx = x_pos % len(hillside[y])
-        # if hillside[y][x_idx] == '.':
-        #     hillside[y][x_idx] = 'O'
-        # elif hillside[y][x_idx] == '#':
-        #     hillside[y][x_idx] = 'X'
-        #     tree_count = tree_count + 1
         if hillside[y][x_idx] == '#':
             tree_count = tree_count + 1
     return tree_count
@@ -35,11 +30,8 @@ def main():
 
     tree_multiple = 1
     for slope in slopes:
-        # print_hillside(hillside)
         tree_count = go_downhill(hillside, slope)
-        print()
-        # print_hillside(hillside)
-        print(f'Number of trees: {tree_count}')
+        print(f'Number of trees for slope {slope}: {tree_count}')
         tree_multiple = tree_multiple * tree_count
     print(f'Tree counts multiplied: {tree_multiple}')
 
