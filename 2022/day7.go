@@ -27,7 +27,7 @@ type Dir struct {
 	Size      int
 }
 
-func calcDirSize(dir *Dir) {
+func (dir *Dir) calcSize() {
 	for _, subDir := range dir.Dirs {
 		dir.Size += subDir.Size
 	}
@@ -61,7 +61,7 @@ func main() {
 			case "cd":
 				cdArg := cmd[1]
 				if cdArg == ".." {
-					calcDirSize(currentDir)
+					currentDir.calcSize()
 					if currentDir.Size <= 100000 {
 						auditDirs = append(auditDirs, currentDir)
 					}
