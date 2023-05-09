@@ -13,6 +13,14 @@ func checkError(err error) {
 	}
 }
 
+func multiply(vals ...int) int {
+	total := 1
+	for _, val := range vals {
+		total *= val
+	}
+	return total
+}
+
 type Tree struct {
 	height int
 }
@@ -45,10 +53,9 @@ func (f *Forest) isTreeVisible(row, col int) bool {
 		return true
 	}
 
-	// var prev_height int
 	isVisible := false
 
-	// return false if tree is not visible from top
+	// check if tree is visible from top
 	for i := row - 1; i >= 0; i-- {
 		if f.trees[i][col].height >= height {
 			break
@@ -58,7 +65,7 @@ func (f *Forest) isTreeVisible(row, col int) bool {
 		}
 	}
 
-	// return false if tree is not visible from bottom
+	// check if tree is visible from bottom
 	for i := row + 1; i < len(f.trees); i++ {
 		if f.trees[i][col].height >= height {
 			break
@@ -68,7 +75,7 @@ func (f *Forest) isTreeVisible(row, col int) bool {
 		}
 	}
 
-	// return false if tree is not visible from left
+	// check if tree is visible from left
 	for i := col - 1; i >= 0; i-- {
 		if f.trees[row][i].height >= height {
 			break
@@ -78,7 +85,7 @@ func (f *Forest) isTreeVisible(row, col int) bool {
 		}
 	}
 
-	// return false if tree is not visible from right
+	// check if tree is visible from right
 	for i := col + 1; i < len(f.trees[row]); i++ {
 		if f.trees[row][i].height >= height {
 			break
@@ -103,6 +110,70 @@ func (f *Forest) countVisibleTrees() int {
 	return count
 }
 
+func (f *Forest) getScenicScore(row, col int) int {
+	height := f.trees[row][col].height
+	visibleCount := []int{0, 0, 0, 0}
+
+	// check scenery from top
+	for i := row - 1; i >= 0; i-- {
+		if i < 0 {
+			break
+		}
+		visibleCount[0]++
+		if f.trees[i][col].height >= height {
+			break
+		}
+	}
+
+	// check scenery from bottom
+	for i := row + 1; i < len(f.trees); i++ {
+		if i >= len(f.trees) {
+			break
+		}
+		visibleCount[1]++
+		if f.trees[i][col].height >= height {
+			break
+		}
+	}
+
+	// check scenery from left
+	for i := col - 1; i >= 0; i-- {
+		if i < 0 {
+			break
+		}
+		visibleCount[2]++
+		if f.trees[row][i].height >= height {
+			break
+		}
+	}
+
+	// check scenery from right
+	for i := col + 1; i < len(f.trees[row]); i++ {
+		if i >= len(f.trees[row]) {
+			break
+		}
+		visibleCount[3]++
+		if f.trees[row][i].height >= height {
+			break
+		}
+	}
+
+	return multiply(visibleCount...)
+}
+
+func (f *Forest) getHighestScenicScore() int {
+	highestScore := 0
+	for row := 0; row < len(f.trees); row++ {
+		for col := 0; col < len(f.trees[row]); col++ {
+			score := f.getScenicScore(row, col)
+			if score > highestScore {
+				highestScore = score
+			}
+		}
+	}
+	return highestScore
+}
+
 func (f *Forest) getTreeVisibility() string {
 	visible_trees := []string{}
 	for row := 0; row < len(f.trees); row++ {
@@ -119,13 +190,19 @@ func (f *Forest) getTreeVisibility() string {
 	return strings.Join(visible_trees, "\n")
 }
 
+func NewForest(text string) *Forest {
+	forest := Forest{}
+	forest.grow(text)
+	return &forest
+}
+
 func main() {
 	content, err := os.ReadFile("day8_input.txt")
 	checkError(err)
 
-	forest := Forest{}
-	forest.grow(string(content))
+	forest := NewForest(string(content))
 
 	// fmt.Println(forest.getTreeVisibility())
-	fmt.Println(forest.countVisibleTrees())
+	fmt.Println("Visible tree count:", forest.countVisibleTrees())
+	fmt.Println("Highest scenic score:", forest.getHighestScenicScore())
 }
