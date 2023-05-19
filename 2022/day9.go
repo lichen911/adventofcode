@@ -15,64 +15,71 @@ func checkError(err error) {
 	}
 }
 
-type RopeEnd struct {
+type Knot struct {
 	x int
 	y int
 }
 
 type Rope struct {
-	head   RopeEnd
-	tail   RopeEnd
-	length int
+	knots             []*Knot
 	visitedTailSpaces map[[2]int]int
 }
 
-func (r *Rope) moveHead(direction string, distance int) {
+func (r *Rope) moveHeadKnot(direction string, distance int) {
 	for i := 0; i < distance; i++ {
 		switch direction {
 		case "U":
-			r.head.y++
+			r.knots[0].y++
 		case "D":
-			r.head.y--
+			r.knots[0].y--
 		case "L":
-			r.head.x--
+			r.knots[0].x--
 		case "R":
-			r.head.x++
+			r.knots[0].x++
 		}
 
-		r.moveTail()
+		r.moveTailKnots()
 
-		fmt.Println(r.getLocation())
+		// fmt.Println(r.getLocation())
 	}
 }
 
-func (r *Rope) moveTail() {
-	if r.getDistance() > r.length {
-		if r.head.x == r.tail.x {
-			if r.head.y > r.tail.y {
-				r.tail.y++
+func (r *Rope) moveTailKnots() {
+	for i := 1; i < len(r.knots); i++ {
+		r.moveKnot(r.knots[i-1], r.knots[i])
+	}
+
+	tail_x := r.knots[len(r.knots)-1].x
+	tail_y := r.knots[len(r.knots)-1].y
+	r.visitedTailSpaces[[2]int{tail_x, tail_y}]++
+}
+
+func (r *Rope) moveKnot(prev *Knot, cur *Knot) {
+	if r.getDistance(prev, cur) > 1 {
+		if prev.x == cur.x {
+			if prev.y > cur.y {
+				cur.y++
 			} else {
-				r.tail.y--
+				cur.y--
 			}
-		} else if r.head.y == r.tail.y {
-			if r.head.x > r.tail.x {
-				r.tail.x++
+		} else if prev.y == cur.y {
+			if prev.x > cur.x {
+				cur.x++
 			} else {
-				r.tail.x--
+				cur.x--
 			}
 		} else {
-			if r.head.x > r.tail.x {
-				r.tail.x++
+			if prev.x > cur.x {
+				cur.x++
 			} else {
-				r.tail.x--
+				cur.x--
 			}
-			if r.head.y > r.tail.y {
-				r.tail.y++
+			if prev.y > cur.y {
+				cur.y++
 			} else {
-				r.tail.y--
+				cur.y--
 			}
 		}
-		r.visitedTailSpaces[[2]int{r.tail.x, r.tail.y}]++
 	}
 }
 
@@ -80,16 +87,25 @@ func (r Rope) getVisitedTailSpaces() int {
 	return len(r.visitedTailSpaces)
 }
 
-func (r Rope) getDistance() int {
-	return int(math.Sqrt(math.Pow(float64(r.head.x-r.tail.x), 2) + math.Pow(float64(r.head.y-r.tail.y), 2)))
+func (r Rope) getKnotCount() int {
+	return len(r.knots)
 }
 
-func (r Rope) getLocation() string {
-	return fmt.Sprintf("Head: (%d, %d) Tail: (%d, %d)", r.head.x, r.head.y, r.tail.x, r.tail.y)
+func (r Rope) getDistance(cur *Knot, prev *Knot) int {
+	return int(math.Sqrt(math.Pow(float64(prev.x-cur.x), 2) + math.Pow(float64(prev.y-cur.y), 2)))
 }
 
-func NewRope(length int) Rope {
-	rope := Rope{RopeEnd{0, 0}, RopeEnd{0, 0}, length, make(map[[2]int]int)}
+func (r Rope) getLocation(cur *Knot, prev *Knot) string {
+	return fmt.Sprintf("Head: (%d, %d) Tail: (%d, %d)", prev.x, prev.y, cur.x, cur.y)
+}
+
+func NewRope(knotCount int) Rope {
+	knots := []*Knot{}
+	for i := 0; i < knotCount; i++ {
+		knots = append(knots, &Knot{0, 0})
+	}
+
+	rope := Rope{knots, make(map[[2]int]int)}
 	rope.visitedTailSpaces[[2]int{0, 0}]++
 	return rope
 }
@@ -101,8 +117,8 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 
-	rope := NewRope(1)
-	fmt.Println(rope.getLocation())
+	rope := NewRope(10)
+	fmt.Println("Knot count:", rope.getKnotCount())
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -111,9 +127,7 @@ func main() {
 		checkError(err)
 
 		fmt.Println("direction: ", direction, "distance: ", distance)
-		rope.moveHead(direction, distance)
-
-		// fmt.Println("Distance between head and tail: ", rope.getDistance())
+		rope.moveHeadKnot(direction, distance)
 	}
 	fmt.Println("Visited tail spaces: ", rope.getVisitedTailSpaces())
 }
