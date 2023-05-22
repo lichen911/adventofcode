@@ -24,15 +24,44 @@ type Processor struct {
 	cycle         int
 	instructions  []Instruction
 	monitorCycles map[int]int
+	crt 		  [6][40]bool
 }
 
 func (p *Processor) incCycle() {
+	fmt.Println("Cycle:", p.cycle, "Register:", p.x)
+
 	_, ok := p.monitorCycles[p.cycle]
 
 	if ok {
 		p.monitorCycles[p.cycle] = p.cycle * p.x
 	}
+
+	p.setPixel()
 	p.cycle++
+	
+}
+
+func (p *Processor) setPixel() {
+	row := (p.cycle - 1) / 40
+	col := (p.cycle - 1) % 40
+
+	if p.x-1 <= col && col <= p.x+1 {
+		p.crt[row][col] = true
+	}
+}
+
+func (p *Processor) printCrt() {
+	for row := 0; row < len(p.crt); row++ {
+		for col := 0; col < len(p.crt[0]); col++ {
+			if p.crt[row][col] {
+				fmt.Printf("#")
+			} else {
+				fmt.Printf(".")
+			}
+			
+		}
+		fmt.Println()
+	}
 }
 
 func (p *Processor) run() {
@@ -92,6 +121,7 @@ func NewProcessor(monitorCycles []int) *Processor {
 		cycle:         1,
 		instructions:  []Instruction{},
 		monitorCycles: monitorCyclesLookup,
+		crt: [6][40]bool{},
 	}
 }
 
@@ -110,5 +140,6 @@ func main() {
 
 	cpu.run()
 
-	fmt.Println(cpu.sumSignalStrength())
+	fmt.Println("Signal strength:", cpu.sumSignalStrength())
+	cpu.printCrt()
 }
