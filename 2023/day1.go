@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"unicode"
 )
 
@@ -12,6 +13,18 @@ func checkError(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+var textDigits = map[string]string{
+	"one":   "1",
+	"two":   "2",
+	"three": "3",
+	"four":  "4",
+	"five":  "5",
+	"six":   "6",
+	"seven": "7",
+	"eight": "8",
+	"nine":  "9",
 }
 
 func main() {
@@ -22,30 +35,45 @@ func main() {
 	scanner := bufio.NewScanner(file)
 
 	var calibration_sum int = 0
-	var first_digit rune
-	var second_digit rune
+	var firstDigit rune
+	var secondDigit rune
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		// fmt.Printf("line value: %v\n", line)
 
+	outerloop1:
 		for i := 0; i < len(line); i++ {
 			r := rune(line[i])
 			if unicode.IsDigit(r) {
-				first_digit = r
+				firstDigit = r
 				break
+			} else {
+				for k, v := range textDigits {
+					if strings.HasPrefix(line[i:], k) {
+						firstDigit = rune(v[0])
+						break outerloop1
+					}
+				}
 			}
 		}
 
+	outerloop2:
 		for i := len(line) - 1; i >= 0; i-- {
 			r := rune(line[i])
 			if unicode.IsDigit(r) {
-				second_digit = r
+				secondDigit = r
 				break
+			} else {
+				for k, v := range textDigits {
+					if strings.HasSuffix(line[:i+1], k) {
+						secondDigit = rune(v[0])
+						break outerloop2
+					}
+				}
 			}
 		}
 
-		final_num, err := strconv.Atoi(string(first_digit) + string(second_digit))
+		final_num, err := strconv.Atoi(string(firstDigit) + string(secondDigit))
 		checkError(err)
 
 		calibration_sum += final_num
