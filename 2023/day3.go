@@ -37,24 +37,38 @@ func printSchematic(schematic [][]rune) {
 	}
 }
 
-func isPartNumber(schematic [][]rune, x, y, length int) bool {
+func updateGearMap(gear rune, gearLocX, gearLocY int, gearMap *map[[2]int][]int, partNum int) {
+	if string(gear) == "*" {
+		gearMapKey := [2]int{gearLocX, gearLocY}
+		if _, ok := (*gearMap)[gearMapKey]; ok {
+			(*gearMap)[gearMapKey] = append((*gearMap)[gearMapKey], partNum)
+		} else {
+			(*gearMap)[gearMapKey] = []int{partNum}
+		}
+	}
+}
+
+func isPartNumber(schematic [][]rune, x, y, length int, gearMap *map[[2]int][]int, partNum int) bool {
 	var xStart, xEnd int
+	var curX, curY int
 
 	// test top - y-1, x-1 to x+length+1
-	if y-1 >= 0 {
+	curY = y-1
+	if curY >= 0 {
 		if x-1 < 0 {
 			xStart = 0
 		} else {
 			xStart = x-1
 		}
 
-		if x+length > len(schematic[y-1])-1 {
-			xEnd = len(schematic[y-1])-1
+		if x+length > len(schematic[curY])-1 {
+			xEnd = len(schematic[curY])-1
 		} else {
 			xEnd = x+length
 		}
 
-		for _, r := range schematic[y-1][xStart:xEnd+1] {
+		for curX, r := range schematic[curY][xStart:xEnd+1] {
+			updateGearMap(r, curX+xStart, curY, gearMap, partNum)
 			if string(r) != "." {
 				return true
 			}
@@ -62,32 +76,41 @@ func isPartNumber(schematic [][]rune, x, y, length int) bool {
 	}
 
 	// test sides - y, x-1 and x+length
-	if x-1 >= 0 {
-		if string(schematic[y][x-1]) != "." {
+	curX = x-1
+	if curX >= 0 {
+		r := schematic[y][curX]
+		updateGearMap(r, curX, y, gearMap, partNum)
+		if string(r) != "." {
 			return true
 		}
 	}
-	if x+length <= len(schematic[y])-1 {
-		if string(schematic[y][x+length]) != "." {
+
+	curX = x+length
+	if curX <= len(schematic[y])-1 {
+		r := schematic[y][curX]
+		updateGearMap(r, curX, y, gearMap, partNum)
+		if string(r) != "." {
 			return true
 		}
 	}
 
 	// test bottom y+1, x-1 to x+length+1
-	if y+1 <= len(schematic)-1 {
+	curY = y+1
+	if curY <= len(schematic)-1 {
 		if x-1 < 0 {
 			xStart = 0
 		} else {
 			xStart = x-1
 		}
 
-		if x+length > len(schematic[y+1])-1 {
-			xEnd = len(schematic[y+1])-1
+		if x+length > len(schematic[curY])-1 {
+			xEnd = len(schematic[curY])-1
 		} else {
 			xEnd = x+length
 		}
 
-		for _, r := range schematic[y+1][xStart:xEnd+1] {
+		for curX, r := range schematic[curY][xStart:xEnd+1] {
+			updateGearMap(r, curX+xStart, curY, gearMap, partNum)
 			if string(r) != "." {
 				return true
 			}
@@ -98,7 +121,7 @@ func isPartNumber(schematic [][]rune, x, y, length int) bool {
 }
 
 
-func findPartNumbers(schematic [][]rune) int {
+func findPartNumbers(schematic [][]rune, gearMap *map[[2]int][]int) int {
 	partNumSum := 0
 	for y := range schematic {
 		x := 0
@@ -122,10 +145,9 @@ func findPartNumbers(schematic [][]rune) int {
 					}
 				}
 
-				if isPartNumber(schematic, x, y, len(partNum)) {
-					partNumInt, err := strconv.Atoi(partNum)
-					checkError(err)
-
+				partNumInt, err := strconv.Atoi(partNum)
+				checkError(err)
+				if isPartNumber(schematic, x, y, len(partNum), gearMap, partNumInt) {
 					partNumSum += partNumInt
 				}
 
@@ -139,12 +161,29 @@ func findPartNumbers(schematic [][]rune) int {
 	return partNumSum
 }
 
+func getGearRatioSum(gearMap map[[2]int][]int) int {
+	gearRatioSum := 0
+	for _, partNum := range gearMap {
+		if len(partNum) == 2 {
+			gearRatioSum += partNum[0] * partNum[1]
+		}
+	}
+
+	return gearRatioSum
+}
+
 func main() {
 	raw_schematic, err := os.ReadFile("day3_input.txt")
 	checkError(err)
 
 	schematic := getSchematic(string(raw_schematic))
+	gearMap := make(map[[2]int][]int)
+
 	// printSchematic(schematic)
-	partNumSum := findPartNumbers(schematic)
+	partNumSum := findPartNumbers(schematic, &gearMap)
 	fmt.Println("Part num sum:", partNumSum)
+
+	// fmt.Println("Gear map:", gearMap)
+	gearRatioSum := getGearRatioSum(gearMap)
+	fmt.Println("Gear ratio sum:", gearRatioSum)
 }
