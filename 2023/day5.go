@@ -98,10 +98,15 @@ func getLocNum(seed int, seedMap [][]MapRange) int {
 func findLowestLocNum(seeds []int, seedMap [][]MapRange) int {
 	lowestLocNum := getLocNum(seeds[0], seedMap)
 
-	for _, seed := range seeds {
-		locNum := getLocNum(seed, seedMap)
-		if locNum < lowestLocNum {
-			lowestLocNum = locNum
+	for i := 0; i < len(seeds)-2; i += 2 {
+		seedRangeStart := seeds[i]
+		seedRangeLength := seeds[i+1]
+
+		for seed := seedRangeStart; seed < seedRangeStart+seedRangeLength; seed++ {
+			locNum := getLocNum(seed, seedMap)
+			if locNum < lowestLocNum {
+				lowestLocNum = locNum
+			}
 		}
 	}
 
@@ -109,7 +114,7 @@ func findLowestLocNum(seeds []int, seedMap [][]MapRange) int {
 }
 
 func main() {
-	seeds, seedMap := loadSeedMap("day5_input_sample.txt")
+	seeds, seedMap := loadSeedMap("day5_input.txt")
 	fmt.Println("seed:", seeds)
 	fmt.Println("seed map:", seedMap)
 
