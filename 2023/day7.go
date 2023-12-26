@@ -33,7 +33,7 @@ type Card struct {
 
 func CardCmp(a, b Card) int {
 	// Compare two Cards in the same manner as cmp.Compare
-	cardFaces := []rune{'A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'}
+	cardFaces := []rune{'A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2', 'J'}
 
 	aIndex := slices.Index(cardFaces, a.value)
 	bIndex := slices.Index(cardFaces, b.value)
@@ -42,9 +42,17 @@ func CardCmp(a, b Card) int {
 }
 
 type Hand struct {
-	cards    []Card
-	bid      int
-	handType HandType
+	cards      []Card
+	bid        int
+	handType   HandType
+	jokerCount int
+}
+
+func printCardCountMap(cardCountMap map[rune]int) {
+	for k, v := range cardCountMap {
+		fmt.Printf("Card: %c, Count: %v, ", k, v)
+	}
+	fmt.Println()
 }
 
 func (h *Hand) setHandType() {
@@ -53,12 +61,18 @@ func (h *Hand) setHandType() {
 
 	// Populate a map containing the counts of each card
 	for _, card := range h.cards {
+		if card.value == 'J' {
+			continue
+		}
+
 		if _, ok := cardCountMap[card.value]; ok {
 			cardCountMap[card.value]++
 		} else {
 			cardCountMap[card.value] = 1
 		}
 	}
+
+	// printCardCountMap(cardCountMap)
 
 	// Create a slice of all card counts and then sort in reverse
 	cardCounts := make([]int, 0)
@@ -69,21 +83,32 @@ func (h *Hand) setHandType() {
 	slices.Reverse(cardCounts)
 
 	// Use the card counts to determine the hand type
-	if cardCounts[0] == 5 {
+	if h.jokerCount == 5 || cardCounts[0]+h.jokerCount == 5 {
 		h.handType = FiveOfAKind
-	} else if cardCounts[0] == 4 {
+	} else if cardCounts[0]+h.jokerCount == 4 {
 		h.handType = FourOfAKind
-	} else if cardCounts[0] == 3 && cardCounts[1] == 2 {
+	} else if cardCounts[0]+h.jokerCount == 3 && cardCounts[1] == 2 {
 		h.handType = FullHouse
-	} else if cardCounts[0] == 3 {
+	} else if cardCounts[0]+h.jokerCount == 3 {
 		h.handType = ThreeOfAKind
-	} else if cardCounts[0] == 2 && cardCounts[1] == 2 {
+	} else if cardCounts[0]+h.jokerCount == 2 && cardCounts[1] == 2 {
 		h.handType = TwoPair
-	} else if cardCounts[0] == 2 {
+	} else if cardCounts[0]+h.jokerCount == 2 {
 		h.handType = OnePair
 	} else {
 		h.handType = HighCard
 	}
+}
+
+func (h *Hand) setJokerCount() {
+	// Set the jokerCount field on the Hand struct
+	jokerCount := 0
+	for _, card := range h.cards {
+		if card.value == 'J' {
+			jokerCount++
+		}
+	}
+	h.jokerCount = jokerCount
 }
 
 func NewHand(cardsStr string, bid int) Hand {
@@ -97,8 +122,9 @@ func NewHand(cardsStr string, bid int) Hand {
 		cards: cards,
 		bid:   bid,
 	}
-	hand.setHandType()
 
+	hand.setJokerCount()
+	hand.setHandType()
 	return hand
 }
 
