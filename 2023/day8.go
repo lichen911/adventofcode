@@ -13,6 +13,31 @@ func checkError(err error) {
 	}
 }
 
+func gcd(a, b int) int {
+	// Euclidean algorithm
+	for b != 0 {
+		temp := b
+		b = a % b
+		a = temp
+	}
+	return a
+}
+
+func lcm(a, b int) int {
+	return a * b / gcd(a, b)
+}
+
+func lcmm(args ...int) int {
+	// Recursively iterate through pairs of arguments
+	// i.e. lcm(args[0], lcm(args[1], lcm(args[2], args[3])))
+
+	if len(args) == 2 {
+		return lcm(args[0], args[1])
+	} else {
+		return lcm(args[0], lcmm(args[1:]...))
+	}
+}
+
 type Node struct {
 	left, right string
 }
@@ -26,22 +51,39 @@ func getNextIns(instructions string, insIndex int) (string, int) {
 	}
 }
 
+func getStartNodes(nodeMap map[string]Node) []string {
+	startNodes := make([]string, 0)
+	for node := range nodeMap {
+		if string(node[2]) == "A" {
+			startNodes = append(startNodes, node)
+		}
+	}
+	return startNodes
+}
+
 func TraverseNetwork(nodeMap map[string]Node, instructions string) int {
 	stepCount := 0
-	currentNode := "AAA"
-	currentIns, currentInsIdx := getNextIns(instructions, -1)
+	stepCounts := make([]int, 0)
+	startNodes := getStartNodes(nodeMap)
 
-	for currentNode != "ZZZ" {
-		if currentIns == "L" {
-			currentNode = nodeMap[currentNode].left
-		} else {
-			currentNode = nodeMap[currentNode].right
+	for _, currentNode := range startNodes {
+		currentIns, currentInsIdx := getNextIns(instructions, -1)
+
+		for !strings.HasSuffix(currentNode, "Z") {
+			if currentIns == "L" {
+				currentNode = nodeMap[currentNode].left
+			} else {
+				currentNode = nodeMap[currentNode].right
+			}
+
+			currentIns, currentInsIdx = getNextIns(instructions, currentInsIdx)
+			stepCount++
 		}
-
-		currentIns, currentInsIdx = getNextIns(instructions, currentInsIdx)
-		stepCount++
+		stepCounts = append(stepCounts, stepCount)
+		stepCount = 0
 	}
-	return stepCount
+
+	return lcmm(stepCounts...)
 }
 
 func main() {
@@ -74,9 +116,6 @@ func main() {
 			nodeMap[nodeName] = Node{left: nodeLeft, right: nodeRight}
 		}
 	}
-
-	// fmt.Println("ins:", instructions)
-	// fmt.Println("nodeMap:", nodeMap)
 
 	stepCount := TraverseNetwork(nodeMap, instructions)
 	fmt.Println("Step count:", stepCount)
