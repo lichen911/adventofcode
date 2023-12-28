@@ -59,7 +59,24 @@ func addNextValDiff(input *[][]int) int {
 	return nextValSum
 }
 
-func getHistVals(histSeq []int) int {
+func addPrevValDiff(input *[][]int) int {
+	prevValSum := 0
+	lastRowIdx := len(*input) - 1
+	(*input)[lastRowIdx] = append([]int{0}, (*input)[lastRowIdx]...)
+
+	for i := lastRowIdx - 1; i >= 0; i-- {
+		firstVal := (*input)[i][0]
+		prevVal := firstVal - (*input)[i+1][0]
+		(*input)[i] = append([]int{prevVal}, (*input)[i]...)
+
+		if i == 0 {
+			prevValSum += prevVal
+		}
+	}
+	return prevValSum
+}
+
+func getHistVals(histSeq []int) (int, int) {
 	histValDiffs := make([][]int, 0)
 	histValDiffs = append(histValDiffs, histSeq)
 
@@ -74,8 +91,9 @@ func getHistVals(histSeq []int) int {
 	}
 
 	histValSum := addNextValDiff(&histValDiffs)
+	prevHistValSum := addPrevValDiff(&histValDiffs)
 	// fmt.Println("histValDiffs:", histValDiffs, "histValSum:", histValSum)
-	return histValSum
+	return histValSum, prevHistValSum
 }
 
 func main() {
@@ -84,15 +102,18 @@ func main() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	histValAccum := 0
+	histValAccum, prevHistValAccum := 0, 0
 
 	for scanner.Scan() {
 		line := scanner.Text()
 
 		histSeqStr := strings.Fields(line)
 		histSeq := ConvertStrings(histSeqStr)
-		histValAccum += getHistVals(histSeq)
+		histValSum, prevHistValSum := getHistVals(histSeq)
+		histValAccum += histValSum
+		prevHistValAccum += prevHistValSum
 	}
 
 	fmt.Println("History value sum:", histValAccum)
+	fmt.Println("Previous history value sum:", prevHistValAccum)
 }
